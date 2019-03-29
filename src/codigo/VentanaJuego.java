@@ -7,16 +7,16 @@ package codigo;
 
 import java.applet.AudioClip;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.Timer;
 
@@ -35,8 +35,15 @@ public class VentanaJuego extends javax.swing.JFrame {
     int disparoLaser = 1;
     Image fondo;
     Image gameover;
+    Image youWin;
     int restart = 0;
     int finaljuego = 0;
+    
+    int muerteMarcianos = 0;
+    
+    int puntos = 0;
+    
+    public static Label label = new Label();
     
     BufferedImage buffer = null;
 
@@ -64,10 +71,24 @@ public class VentanaJuego extends javax.swing.JFrame {
     public VentanaJuego() {
         initComponents();
         
+        setLocationRelativeTo(null);
+        Font font1;
+        font1 = new Font ("verdana", Font.BOLD, 30);
         
+        label.setFont(font1);
+        label.setForeground(Color.white);
+        label.setBackground(Color.blue);
+        label.setBounds(520, 0, 80, 30);
+        label.setText("0");
+        jPanel1.add(label);
         
         try {
-            fondo = ImageIO.read(getClass().getResource("/imagenes/fondoInv.jpg"));
+            youWin = ImageIO.read(getClass().getResource("/imagenes/youWin.png"));
+        } catch (IOException ex) {
+            
+        }
+        try {
+            fondo = ImageIO.read(getClass().getResource("/imagenes/vwfondo.jpg"));
         } catch (IOException ex) {
             
         }
@@ -118,7 +139,7 @@ public class VentanaJuego extends javax.swing.JFrame {
           listaMarcianos[numeroFila][j].imagen1 = imagenes[spriteFila][spriteColumna];
           listaMarcianos[numeroFila][j].imagen2 = imagenes[spriteFila][spriteColumna + 1];
           listaMarcianos[numeroFila][j].setX(j * (15 + listaMarcianos[numeroFila][j].imagen1.getWidth(null)));
-          listaMarcianos[numeroFila][j].setY(numeroFila * (10 + listaMarcianos[numeroFila][j].imagen1.getHeight(null)));
+          listaMarcianos[numeroFila][j].setY( numeroFila * (10 + listaMarcianos[numeroFila][j].imagen1.getHeight(null)));
       }
   }  
     
@@ -184,6 +205,9 @@ public class VentanaJuego extends javax.swing.JFrame {
         }else if(finaljuego == 1){
             g2.drawImage(gameover, 0, 0, null);
         }
+        if(muerteMarcianos == 40){
+           g2.drawImage(youWin, 0, 0, null);
+        }
         if(finaljuego == 0){
             gameOver();
         }
@@ -210,7 +234,7 @@ public class VentanaJuego extends javax.swing.JFrame {
                      acabose = java.applet.Applet.newAudioClip(getClass().getResource("/sonidos/gameover.wav"));
                      acabose.stop();
                         AudioClip sonido;
-                        sonido = java.applet.Applet.newAudioClip(getClass().getResource("/sonidos/ambience.wav"));
+                        sonido = java.applet.Applet.newAudioClip(getClass().getResource("/sonidos/vaporW.wav"));
                         sonido.loop();
                         restart = 1;
         }
@@ -236,10 +260,25 @@ public class VentanaJuego extends javax.swing.JFrame {
                          AudioClip sonido;
                          sonido = java.applet.Applet.newAudioClip(getClass().getResource("/sonidos/bicho1.wav"));
                          sonido.play();
-                        listaMarcianos[i][j].vivo = false;
-                        miDisparo.posicionaDisparo(miNave);
-                        miDisparo.y = 1000;
-                        miDisparo.disparado = false;
+                         if(i == 0){
+                                puntos = puntos + 200;
+                         }else{
+                             if(i == 1){
+                                 puntos = puntos + 150;
+                             }else{
+                                 if(i == 2){
+                                     puntos = puntos + 100;
+                                 }else{
+                                     puntos = puntos + 50;
+                                 }
+                             }
+                         }
+                         muerteMarcianos  = muerteMarcianos + 1;
+                         label.setText("" + puntos);
+                         listaMarcianos[i][j].vivo = false;
+                         miDisparo.posicionaDisparo(miNave);
+                         miDisparo.y = 1000;
+                         miDisparo.disparado = false;
                     }
                 }
             }
@@ -273,7 +312,10 @@ public class VentanaJuego extends javax.swing.JFrame {
                              for(int l=0; l<columnas; l++){
                                     listaMarcianos[k][l].vivo = false;
                               }
-                        }   
+                        }
+                        muerteMarcianos = 0;
+                        puntos = 0;
+                        label.setText("" + puntos);
                             finaljuego = 1;
                              restart = 1;
                                    AudioClip sonido;
@@ -291,11 +333,18 @@ public class VentanaJuego extends javax.swing.JFrame {
             }
          }
     }
+   
     private void cambiaDireccionMarcianos() {
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
                 listaMarcianos[i][j].setY(listaMarcianos[i][j].getY() + listaMarcianos[0][0].imagen1.getHeight(null));
                 listaMarcianos[i][j].setvX(listaMarcianos[i][j].getvX()* -1);
+               // if(listaMarcianos[i][j].vX < 0){
+                //    listaMarcianos[i][j].setvX(listaMarcianos[i][j].getvX() - 1);
+               // }else{
+               //   listaMarcianos[i][j].setvX(listaMarcianos[i][j].getvX() + 1);  
+              //  }
+                
             }
         }
     }
@@ -386,31 +435,10 @@ public class VentanaJuego extends javax.swing.JFrame {
                 miNave.setPulsadoDerecha(true);
                 break;
             case KeyEvent.VK_SPACE:
-                if(disparoLaser == 1){
-                   AudioClip sonido;
-                   sonido = java.applet.Applet.newAudioClip(getClass().getResource("/sonidos/lasrhit1.wav"));
-                   sonido.play();
-                   disparoLaser = 2;
-               }else{
-                   if(disparoLaser == 2){
-                       AudioClip sonido;
-                       sonido = java.applet.Applet.newAudioClip(getClass().getResource("/sonidos/lasrhit2.wav"));
-                       sonido.play();
-                       disparoLaser = 3;
-                   }else{
-                       if(disparoLaser == 3){
-                           AudioClip sonido;
-                           sonido = java.applet.Applet.newAudioClip(getClass().getResource("/sonidos/lasrhit3.wav"));
-                           sonido.play();
-                           disparoLaser = 4;
-                       }else{
-                             AudioClip sonido;
-                             sonido = java.applet.Applet.newAudioClip(getClass().getResource("/sonidos/lasrhit4.wav"));
-                             sonido.play();
-                             disparoLaser = 1;
-                       }
-                   }
-                }
+                 AudioClip sonido;
+                 sonido = java.applet.Applet.newAudioClip(getClass().getResource("/sonidos/disparolas.wav"));
+                 sonido.play();
+               
                 miDisparo.posicionaDisparo(miNave);
                 miDisparo.disparado = true;
                 break;
